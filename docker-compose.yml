@@ -1,0 +1,30 @@
+version: "3.7"
+services: 
+  kafka:
+    image: spotify/kafka
+    ports: 
+      - "9092:9092"
+      - "2181:2181"
+    expose:
+      - "9092"
+      - "2181"
+    environment: 
+      - ADVERTISED_HOST=localhost
+      - ADVERTISED_PORT=9092
+  db: 
+    image: mysql 
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: basepassword 
+      MYSQL_DATABASE: "test"
+    ports:
+      - "3306:3306"
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+    - 8080:8080
+
+    
