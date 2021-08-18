@@ -17,7 +17,7 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: basepassword 
-      MYSQL_DATABASE: "test"
+      MYSQL_DATABASE: "kafka-transfer"
     ports:
       - "3306:3306"
 

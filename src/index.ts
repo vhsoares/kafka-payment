@@ -1,23 +1,16 @@
-import "reflect-metadata";
-import { createConnection } from "typeorm";
-import { User } from "./entity/User";
-import { kafkaNotify,startKafka } from "./gateways/kafka/index";
+import 'reflect-metadata';
+import {createConnection} from 'typeorm';
+import startServer from './server';
+import TransferRouter from './transfer/TransferRouter';
+import UserRouter from './user/UserRouter';
+import {handleErrors} from './utils';
 
-createConnection().then(async (connection) => {
-    const { producer } = startKafka();
-    kafkaNotify(producer, "test-topic", { message: "Hello World Kafka" });
+createConnection().then(async connection => {
+	const server = startServer();
 
-    console.log("Inserting a new user into the database...");
-    const user = new User();
-    user.firstName = "Timber";
-    user.lastName = "Saw";
-    user.age = 25;
-    await connection.manager.save(user);
-    console.log("Saved a new user with id: " + user.id);
+	server.use('/user', UserRouter);
+	server.use('/transfer', TransferRouter);
 
-    console.log("Loading users from the database...");
-    const users = await connection.manager.find(User);
-    console.log("Loaded users: ", users);
-
-    console.log("Here you can setup and run express/koa/any other framework.");
-}).catch((error) => console.log(error));
+	server.use(handleErrors);
+	server.listen(3000);
+}).catch(error => console.log(error));
