@@ -29,6 +29,7 @@
   },
   "scripts": {
     "start": "ts-node src/index.ts",
+    "start:development": "nodemon src/index.ts",
     "lint": "eslint --fix"
   },
   "husky": {
