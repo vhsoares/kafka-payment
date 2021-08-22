@@ -1,33 +1,40 @@
-import { Consumer, Kafka, Producer } from 'kafkajs'
+import {Kafka} from 'kafkajs';
+import {env} from './../../config/config';
 
-const clientId = 'kafka-payment'
-const brokers = ['0.0.0.0:9092']
+const {clientId} = env.kafka;
+const brokers = [env.kafka.brokers];
 
-export const startKafka = () => {
-    const kafka = new Kafka({ clientId, brokers })
-    const producer = kafka.producer()
-    const consumer = kafka.consumer({groupId: clientId})
+const startKafka = () => {
+	const kafka = new Kafka({clientId, brokers});
 
-    kafkaConsume(consumer, 'test-topic')
-    return { consumer, producer }
-}
+	const producer = kafka.producer();
+	const consumer = kafka.consumer({groupId: clientId});
 
-export const kafkaNotify = async (producer: Producer, topic: string, payload: Object) => {
-    await producer.connect()
-    await producer.send({
-        topic, messages: [{
-            key: Date.now().toString(),
-            value: JSON.stringify(payload)
-        }]
-    })
-}
+	return {consumer, producer};
+};
 
-const kafkaConsume = async (consumer: Consumer, topic: string) => {
-    await consumer.connect()
-    await consumer.subscribe({topic, fromBeginning: true})
-    await consumer.run({
-        eachMessage: async ({message}) => {
-            console.log(`received message ${message.value}`)
-        }
-    })
-}
+export const kafkaNotify = async (topic: string, payload: Object) => {
+	const {producer} = startKafka();
+
+	await producer.connect();
+
+	await producer.send({
+		topic, messages: [{
+			key: Date.now().toString(),
+			value: JSON.stringify(payload),
+		}],
+	});
+};
+
+export const kafkaConsume = async (topic: string, callback: Function) => {
+	const {consumer} = startKafka();
+
+	await consumer.connect();
+	await consumer.subscribe({topic, fromBeginning: true});
+
+	await consumer.run({
+		eachMessage: async ({message}) => {
+			callback(message.value);
+		},
+	});
+};
